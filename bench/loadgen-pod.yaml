@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loadgen
+spec:
+  restartPolicy: Never
+  containers:
+    - name: loadgen
+      image: warpserve:cpu
+      imagePullPolicy: IfNotPresent
+      command: ["python", "/bench/incluster_load.py"]
+      env:
+        - name: WORKERS
+          value: "24"
+        - name: SECONDS
+          value: "45"
+      volumeMounts:
+        - name: bench
+          mountPath: /bench
+      resources:
+        requests: {cpu: "500m", memory: "256Mi"}
+  volumes:
+    - name: bench
+      configMap:
+        name: loadgen

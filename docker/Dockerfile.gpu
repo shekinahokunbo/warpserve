@@ -1,0 +1,41 @@
+# Multi-stage build: compile CUDA in a ~3GB devel image, ship only the ~600MB
+# runtime image. The point of multi-stage is that nvcc, headers, and build tools
+# never reach production — smaller image, faster pulls, smaller attack surface.
+# Report the before/after size in your README; it's a real number.
+
+# ---------- stage 1: build ----------
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS build
+
+WORKDIR /build
+COPY kernels/ ./kernels/
+
+# -Xcompiler -fPIC + --shared produces a .so the Python service loads via ctypes
+# (same pattern as EdgePulse). sm_75 = T4; sm_86 = A10/RTX 30xx; sm_89 = L4/RTX 40xx.
+ARG CUDA_ARCH=sm_75
+RUN nvcc -O3 -arch=${CUDA_ARCH} --shared -Xcompiler -fPIC \
+        kernels/preprocess.cu -o libpreprocess.so
+
+# ---------- stage 2: runtime ----------
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY service/requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+COPY --from=build /build/libpreprocess.so /app/lib/
+COPY service/ /app/service/
+
+ENV WARPSERVE_KERNEL_PATH=/app/lib/libpreprocess.so \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+# Run as non-root — Kubernetes security contexts will reject root by default in
+# most real clusters, and it costs you nothing to get right from the start.
+RUN useradd --create-home --uid 10001 warpserve
+USER warpserve
+
+CMD ["python3", "-m", "uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8000"]

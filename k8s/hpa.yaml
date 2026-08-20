@@ -1,0 +1,37 @@
+# The Horizontal Pod Autoscaler is the payoff of this whole milestone: it's the
+# concrete answer to "why Kubernetes instead of just docker run?"
+#
+# Requires metrics-server in the cluster (kind does NOT ship it):
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#   kubectl patch -n kube-system deployment metrics-server --type=json \
+#     -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+#
+# The patch is needed because kind's kubelet serving certs aren't signed by the
+# cluster CA. Don't do that in production.
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: warpserve
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: warpserve
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # Percentage of the 200m CPU *request*, not of a whole core.
+          averageUtilization: 60
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 15
+    scaleDown:
+      # Scale down slowly so a brief lull doesn't kill capacity you're about to
+      # need again — this is the setting people most often get wrong.
+      stabilizationWindowSeconds: 120

@@ -1,0 +1,29 @@
+# CPU-only image. This is the one that actually runs on your Apple Silicon Mac
+# and inside your local kind cluster — no NVIDIA GPU required.
+#
+# The service detects at startup whether the CUDA .so is present and loadable;
+# if not, it uses the NumPy path. Same code, same API, same manifests. That
+# fallback IS the design: it's why you can develop orchestration locally and
+# still deploy the GPU image unchanged.
+
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+COPY service/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY service/ /app/service/
+
+ENV WARPSERVE_FORCE_CPU=1 \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+RUN useradd --create-home --uid 10001 warpserve
+USER warpserve
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"
+
+CMD ["python", "-m", "uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8000"]

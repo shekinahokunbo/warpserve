@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warpserve
+  labels:
+    app: warpserve
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: warpserve
+  template:
+    metadata:
+      labels:
+        app: warpserve
+    spec:
+      containers:
+        - name: warpserve
+          image: warpserve:cpu
+          # kind loads images locally; without this Kubernetes tries to pull
+          # from Docker Hub and the pod sits in ErrImagePull forever.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: WARPSERVE_FORCE_CPU
+              value: "1"
+          # Requests are what the scheduler reserves and what the HPA measures
+          # utilization against. Set them deliberately: too high and pods don't
+          # fit, too low and the HPA scales on noise.
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # Liveness = "restart me if I'm wedged".
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          # Readiness = "don't send me traffic until I can serve it".
+          # This is the one that makes rolling updates zero-downtime.
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+---
+# GPU variant — swap the image and add the resource request. The NVIDIA device
+# plugin exposes nvidia.com/gpu; you cannot test this on your Mac, so keep it
+# in the repo as the documented production path and say so in the README.
+#
+#          image: warpserve:gpu
+#          resources:
+#            limits:
+#              nvidia.com/gpu: 1

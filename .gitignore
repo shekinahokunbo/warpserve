@@ -1,0 +1,8 @@
+__pycache__/
+*.so
+*.o
+preprocess
+matmul
+.venv/
+*.png
+.DS_Store
