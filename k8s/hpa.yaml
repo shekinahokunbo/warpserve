@@ -1,5 +1,5 @@
-# The Horizontal Pod Autoscaler is the payoff of this whole milestone: it's the
-# concrete answer to "why Kubernetes instead of just docker run?"
+# Horizontal Pod Autoscaler: scales the Deployment between 2 and 8 replicas on
+# CPU utilization. Measured behaviour is in the README (Kubernetes scaling).
 #
 # Requires metrics-server in the cluster (kind does NOT ship it):
 #   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml

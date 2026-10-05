@@ -12,6 +12,6 @@ spec:
     - name: http
       port: 80
       targetPort: http
-# Reach it from your laptop with:
+# Reach it from outside the cluster with:
 #   kubectl port-forward svc/warpserve 8080:80
 # then hit http://localhost:8080/healthz

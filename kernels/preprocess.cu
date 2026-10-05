@@ -221,7 +221,7 @@ int main()
     CUDA_CHECK(cudaEventElapsedTime(&kernel_ms, start, stop));
     kernel_ms /= ITERS;
 
-    // ---- GPU, end to end (this is the number that decides your architecture)
+    // ---- GPU, end to end (the number that decides the serving architecture)
     CUDA_CHECK(cudaEventRecord(start));
     for (int i = 0; i < ITERS; ++i) {
         CUDA_CHECK(cudaMemcpy(d_src, h_src.data(), src_bytes, cudaMemcpyHostToDevice));

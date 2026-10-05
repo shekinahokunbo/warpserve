@@ -1,9 +1,9 @@
-# CPU-only image. This is the one that actually runs on your Apple Silicon Mac
-# and inside your local kind cluster — no NVIDIA GPU required.
+# CPU-only image. This is the one that runs on Apple Silicon and inside a
+# local kind cluster — no NVIDIA GPU required.
 #
 # The service detects at startup whether the CUDA .so is present and loadable;
 # if not, it uses the NumPy path. Same code, same API, same manifests. That
-# fallback IS the design: it's why you can develop orchestration locally and
+# fallback IS the design: it's what allows developing the orchestration layer locally and
 # still deploy the GPU image unchanged.
 
 FROM python:3.11-slim AS base

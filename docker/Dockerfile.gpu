@@ -1,7 +1,7 @@
 # Multi-stage build: compile CUDA in a ~3GB devel image, ship only the ~600MB
 # runtime image. The point of multi-stage is that nvcc, headers, and build tools
 # never reach production — smaller image, faster pulls, smaller attack surface.
-# Report the before/after size in your README; it's a real number.
+# Measured sizes are in the README (Containerized service).
 
 # ---------- stage 1: build ----------
 FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS build

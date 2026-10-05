@@ -57,8 +57,8 @@ spec:
             allowPrivilegeEscalation: false
 ---
 # GPU variant — swap the image and add the resource request. The NVIDIA device
-# plugin exposes nvidia.com/gpu; you cannot test this on your Mac, so keep it
-# in the repo as the documented production path and say so in the README.
+# plugin exposes nvidia.com/gpu. This variant is documented but untested: it
+# needs a node with an NVIDIA GPU (see Limitations in the README).
 #
 #          image: warpserve:gpu
 #          resources:

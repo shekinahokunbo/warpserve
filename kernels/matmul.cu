@@ -1,7 +1,7 @@
 // WarpServe — naive vs. shared-memory tiled matrix multiply
 //
-// This is the kernel every GPU interview asks about, because it is the smallest
-// program that forces you to understand the memory hierarchy. Both versions do
+// Matrix multiply is the smallest program that exposes the GPU memory
+// hierarchy. Both versions do
 // the identical arithmetic; the tiled one is faster purely because it stages
 // data in shared memory (~100x lower latency than global) and each loaded value
 // gets reused TILE times instead of being re-fetched from DRAM.

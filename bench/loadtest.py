@@ -4,8 +4,7 @@ Usage:
     python bench/loadtest.py --url http://localhost:8080 --workers 8 --seconds 60
 
 Reports p50/p95/p99 and throughput. Pair the output with `kubectl get hpa -w`
-to build the latency-vs-replica-count table — that table, not the YAML, is what
-makes the Kubernetes milestone worth putting on a resume.
+to build the latency-vs-replica-count table in the README.
 
 Stdlib only, so it runs anywhere without installing anything.
 """
